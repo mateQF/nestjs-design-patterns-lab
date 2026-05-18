@@ -5,4 +5,7 @@ export class CreateDocumentDto {
   title: string;
   customerName: string;
   amount?: number;
+  referenceDocumentId?: string;
+  taxRate?: number;
+  clauses?: string[];
 }

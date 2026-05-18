@@ -7,6 +7,8 @@ import { StrategyPatternModule } from './patterns/strategy-pattern/strategy-patt
 import { FactoryPatternModule } from './patterns/factory-pattern/factory-pattern.module';
 import { AdapterPatternModule } from './patterns/adapter-pattern/adapter-pattern.module';
 import { ObserverPatternModule } from './patterns/observer-pattern/observer-pattern.module';
+import { BuilderPatternModule } from './patterns/builder-pattern/builder-pattern.module';
+import { PrototypePatternModule } from './patterns/prototype-pattern/prototype-pattern.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { ObserverPatternModule } from './patterns/observer-pattern/observer-patt
     FactoryPatternModule,
     AdapterPatternModule,
     ObserverPatternModule,
+    BuilderPatternModule,
+    PrototypePatternModule,
   ],
 })
 export class AppModule {}

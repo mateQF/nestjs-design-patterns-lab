@@ -1,6 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CurrencyConverterService } from '../services/currency-converter.service';
-import { ConvertCurrencyDto } from '../dto/convert-currency.dto';
+import {
+  CompareCurrencyProvidersDto,
+  ConvertCurrencyDto,
+} from '../dto/convert-currency.dto';
 
 @Controller('patterns/adapter/currency')
 export class CurrencyController {
@@ -11,5 +14,15 @@ export class CurrencyController {
   @Post('convert')
   convert(@Body() dto: ConvertCurrencyDto) {
     return this.currencyConverterService.convert(dto);
+  }
+
+  @Post('compare')
+  compare(@Body() dto: CompareCurrencyProvidersDto) {
+    return this.currencyConverterService.compare(dto);
+  }
+
+  @Get('providers')
+  listProviders() {
+    return this.currencyConverterService.listProviders();
   }
 }

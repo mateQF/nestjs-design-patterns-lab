@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateDocumentDto } from '../dto/create-document.dto';
 import { DocumentFactory } from '../factories/document.factory';
 import { GeneratedDocument } from '../interfaces/document.interface';
+import { DocumentType } from '../enums/document-type.enum';
 
 @Injectable()
 export class DocumentService {
@@ -21,5 +22,9 @@ export class DocumentService {
 
   findAll(): GeneratedDocument[] {
     return this.documents;
+  }
+
+  getSupportedTypes(): DocumentType[] {
+    return this.documentFactory.getSupportedTypes();
   }
 }

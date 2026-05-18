@@ -15,11 +15,17 @@ export class ReceiptDocument implements DocumentModel {
   generate(): GeneratedDocument {
     return {
       id: randomUUID(),
+      documentNumber: `REC-${randomUUID().slice(0, 8).toUpperCase()}`,
       type: DocumentType.RECEIPT,
       title: this.title,
       customerName: this.customerName,
       content: `Receipt generated for ${this.customerName}. Paid amount: ${this.amount}`,
+      status: 'generated',
       createdAt: new Date(),
+      metadata: {
+        amount: this.amount,
+        paymentConfirmed: true,
+      },
     };
   }
 }

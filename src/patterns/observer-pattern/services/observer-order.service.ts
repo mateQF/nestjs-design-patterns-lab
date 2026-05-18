@@ -3,12 +3,14 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { randomUUID } from 'crypto';
 import { CreateObserverOrderDto } from '../dto/create-observer-order.dto';
 import { OrderCreatedEvent } from '../events/order-created.event';
+import { ORDER_CREATED_EVENT } from '../constants/order-events';
 
 export interface ObserverOrder {
   id: string;
   userId: string;
   userEmail: string;
   total: number;
+  currency: string;
   createdAt: Date;
 }
 
@@ -24,18 +26,21 @@ export class ObserverOrderService {
       userId: dto.userId,
       userEmail: dto.userEmail,
       total: dto.total,
+      currency: dto.currency ?? 'ARS',
       createdAt: new Date(),
     };
 
     this.orders.push(order);
 
     this.eventEmitter.emit(
-      'order.created',
+      ORDER_CREATED_EVENT,
       new OrderCreatedEvent(
+        randomUUID(),
         order.id,
         order.userId,
         order.userEmail,
         order.total,
+        order.currency,
         order.createdAt,
       ),
     );

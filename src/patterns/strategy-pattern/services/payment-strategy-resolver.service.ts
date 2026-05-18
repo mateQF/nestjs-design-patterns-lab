@@ -1,27 +1,29 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { PaymentProvider } from '../enums/payment-provider.enum';
-import { PaymentStrategy } from '../interfaces/payment-strategy.interface';
-import { MercadoPagoStrategy } from '../strategies/mercado-pago.strategy';
-import { StripeStrategy } from '../strategies/stripe.strategy';
-import { CashStrategy } from '../strategies/cash.strategy';
+import {
+  PaymentRequest,
+  PaymentStrategy,
+} from '../interfaces/payment-strategy.interface';
+import { PAYMENT_STRATEGIES } from '../tokens/payment-strategies.token';
 
 @Injectable()
 export class PaymentStrategyResolverService {
   private readonly strategies: Record<PaymentProvider, PaymentStrategy>;
 
   constructor(
-    private readonly mercadoPagoStrategy: MercadoPagoStrategy,
-    private readonly stripeStrategy: StripeStrategy,
-    private readonly cashStrategy: CashStrategy,
+    @Inject(PAYMENT_STRATEGIES)
+    strategies: PaymentStrategy[],
   ) {
-    this.strategies = {
-      [PaymentProvider.MERCADO_PAGO]: this.mercadoPagoStrategy,
-      [PaymentProvider.STRIPE]: this.stripeStrategy,
-      [PaymentProvider.CASH]: this.cashStrategy,
-    };
+    this.strategies = strategies.reduce(
+      (registry, strategy) => ({
+        ...registry,
+        [strategy.provider]: strategy,
+      }),
+      {} as Record<PaymentProvider, PaymentStrategy>,
+    );
   }
 
-  resolve(provider: PaymentProvider): PaymentStrategy {
+  resolve(provider: PaymentProvider, request: PaymentRequest): PaymentStrategy {
     const strategy = this.strategies[provider];
 
     if (!strategy) {
@@ -30,6 +32,16 @@ export class PaymentStrategyResolverService {
       );
     }
 
+    if (!strategy.supports(request)) {
+      throw new BadRequestException(
+        `Payment provider ${provider} does not support this payment request`,
+      );
+    }
+
     return strategy;
+  }
+
+  getSupportedProviders(): PaymentProvider[] {
+    return Object.keys(this.strategies) as PaymentProvider[];
   }
 }

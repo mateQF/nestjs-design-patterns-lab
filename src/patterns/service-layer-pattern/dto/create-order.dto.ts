@@ -1,5 +1,8 @@
 export class CreateOrderDto {
   userId: string;
+  customerTier?: 'standard' | 'gold' | 'platinum';
+  couponCode?: string;
+  shippingPostalCode?: string;
   items: CreateOrderItemDto[];
 }
 

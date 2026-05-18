@@ -1,10 +1,17 @@
 import { Module } from '@nestjs/common';
 import { ProductsController } from './controllers/products.controller';
 import { ProductService } from './services/product.service';
-import { ProductRepository } from './repositories/product.repository';
+import { InMemoryProductRepository } from './repositories/product.repository';
+import { PRODUCT_REPOSITORY } from './interfaces/product-repository.interface';
 
 @Module({
   controllers: [ProductsController],
-  providers: [ProductService, ProductRepository],
+  providers: [
+    ProductService,
+    {
+      provide: PRODUCT_REPOSITORY,
+      useClass: InMemoryProductRepository,
+    },
+  ],
 })
 export class RepositoryPatternModule {}

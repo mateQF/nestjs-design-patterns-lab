@@ -15,4 +15,9 @@ export class DocumentsController {
   findAll() {
     return this.documentService.findAll();
   }
+
+  @Get('types')
+  getSupportedTypes() {
+    return this.documentService.getSupportedTypes();
+  }
 }

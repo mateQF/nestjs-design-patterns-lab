@@ -5,6 +5,7 @@ import { PaymentStrategyResolverService } from './services/payment-strategy-reso
 import { MercadoPagoStrategy } from './strategies/mercado-pago.strategy';
 import { StripeStrategy } from './strategies/stripe.strategy';
 import { CashStrategy } from './strategies/cash.strategy';
+import { PAYMENT_STRATEGIES } from './tokens/payment-strategies.token';
 
 @Module({
   controllers: [PaymentsController],
@@ -14,6 +15,15 @@ import { CashStrategy } from './strategies/cash.strategy';
     MercadoPagoStrategy,
     StripeStrategy,
     CashStrategy,
+    {
+      provide: PAYMENT_STRATEGIES,
+      useFactory: (
+        mercadoPagoStrategy: MercadoPagoStrategy,
+        stripeStrategy: StripeStrategy,
+        cashStrategy: CashStrategy,
+      ) => [mercadoPagoStrategy, stripeStrategy, cashStrategy],
+      inject: [MercadoPagoStrategy, StripeStrategy, CashStrategy],
+    },
   ],
 })
 export class StrategyPatternModule {}

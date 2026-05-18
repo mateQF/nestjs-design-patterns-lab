@@ -1,0 +1,1 @@
+export const PAYMENT_STRATEGIES = Symbol('PAYMENT_STRATEGIES');

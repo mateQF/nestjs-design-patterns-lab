@@ -1,22 +1,45 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product } from '../entities/product.entity';
-import { CreateProductDto } from '../dto/create-product.dto';
-import { randomUUID } from 'crypto';
+import {
+  ProductRepositoryPort,
+  ProductSearchCriteria,
+} from '../interfaces/product-repository.interface';
 
 @Injectable()
-export class ProductRepository {
+export class InMemoryProductRepository implements ProductRepositoryPort {
   private readonly products: Product[] = [];
 
-  create(dto: CreateProductDto): Product {
-    const product = new Product(randomUUID(), dto.name, dto.price, dto.stock);
-
+  create(product: Product): Product {
     this.products.push(product);
 
     return product;
   }
 
-  findAll(): Product[] {
-    return this.products;
+  findAll(criteria: ProductSearchCriteria = {}): Product[] {
+    return this.products.filter((product) => {
+      if (!criteria.includeInactive && product.status !== 'active') {
+        return false;
+      }
+
+      if (criteria.category && product.category !== criteria.category) {
+        return false;
+      }
+
+      if (criteria.lowStockOnly && !product.isLowStock) {
+        return false;
+      }
+
+      if (criteria.search) {
+        const value = criteria.search.toLowerCase();
+
+        return (
+          product.name.toLowerCase().includes(value) ||
+          product.sku.toLowerCase().includes(value)
+        );
+      }
+
+      return true;
+    });
   }
 
   findById(id: string): Product {
@@ -29,10 +52,20 @@ export class ProductRepository {
     return product;
   }
 
-  updateStock(id: string, stock: number): Product {
-    const product = this.findById(id);
+  findBySku(sku: string): Product | undefined {
+    return this.products.find((product) => product.sku === sku);
+  }
 
-    product.stock = stock;
+  save(product: Product): Product {
+    const productIndex = this.products.findIndex(
+      (storedProduct) => storedProduct.id === product.id,
+    );
+
+    if (productIndex === -1) {
+      throw new NotFoundException(`Product with id ${product.id} not found`);
+    }
+
+    this.products[productIndex] = product;
 
     return product;
   }

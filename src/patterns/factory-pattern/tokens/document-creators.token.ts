@@ -1,0 +1,1 @@
+export const DOCUMENT_CREATORS = Symbol('DOCUMENT_CREATORS');

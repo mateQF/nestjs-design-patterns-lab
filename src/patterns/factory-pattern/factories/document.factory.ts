@@ -1,47 +1,54 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CreateDocumentDto } from '../dto/create-document.dto';
 import { DocumentType } from '../enums/document-type.enum';
-import { DocumentModel } from '../interfaces/document.interface';
-import { InvoiceDocument } from '../models/invoice-document.model';
-import { ContractDocument } from '../models/contract-document.model';
-import { ReceiptDocument } from '../models/receipt-document.model';
+import {
+  DocumentCreator,
+  DocumentModel,
+} from '../interfaces/document.interface';
+import { DOCUMENT_CREATORS } from '../tokens/document-creators.token';
 
 @Injectable()
 export class DocumentFactory {
-  create(dto: CreateDocumentDto): DocumentModel {
-    switch (dto.type) {
-      case DocumentType.INVOICE:
-        return new InvoiceDocument(
-          dto.title,
-          dto.customerName,
-          this.getRequiredAmount(dto.amount, dto.type),
-        );
+  private readonly creators: Record<DocumentType, DocumentCreator>;
 
-      case DocumentType.CONTRACT:
-        return new ContractDocument(dto.title, dto.customerName);
-
-      case DocumentType.RECEIPT:
-        return new ReceiptDocument(
-          dto.title,
-          dto.customerName,
-          this.getRequiredAmount(dto.amount, dto.type),
-        );
-
-      default:
-        throw new BadRequestException(`Document type not supported`);
-    }
+  constructor(
+    @Inject(DOCUMENT_CREATORS)
+    creators: DocumentCreator[],
+  ) {
+    this.creators = creators.reduce(
+      (registry, creator) => ({
+        ...registry,
+        [creator.type]: creator,
+      }),
+      {} as Record<DocumentType, DocumentCreator>,
+    );
   }
 
-  private getRequiredAmount(
-    amount: number | undefined,
-    type: DocumentType,
-  ): number {
-    if (amount === undefined || amount <= 0) {
+  create(dto: CreateDocumentDto): DocumentModel {
+    this.validateCommonFields(dto);
+
+    const creator = this.creators[dto.type];
+
+    if (!creator) {
       throw new BadRequestException(
-        `Amount is required for document type ${type}`,
+        `Document type ${dto.type} is not supported`,
       );
     }
 
-    return amount;
+    return creator.create(dto);
+  }
+
+  getSupportedTypes(): DocumentType[] {
+    return Object.keys(this.creators) as DocumentType[];
+  }
+
+  private validateCommonFields(dto: CreateDocumentDto): void {
+    if (!dto.title?.trim()) {
+      throw new BadRequestException('Document title is required');
+    }
+
+    if (!dto.customerName?.trim()) {
+      throw new BadRequestException('Document customer name is required');
+    }
   }
 }
